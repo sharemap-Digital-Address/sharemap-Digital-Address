@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShareMap - Delivery Form</title>
 
+    <!-- MONETAG IN-PAGE PUSH AD SCRIPT (Naka-comment out muna)
+    <script>(function(s){s.dataset.zone='11719353',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+    -->
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -28,6 +32,12 @@
             width: 100%;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             box-sizing: border-box;
+        }
+        .timer {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #38bdf8;
+            margin: 8px 0;
         }
         .form-group {
             text-align: left;
@@ -54,20 +64,21 @@
             border-color: #38bdf8;
         }
         .btn {
-            background-color: #0284c7;
+            background-color: #94a3b8;
             color: #ffffff;
             border: none;
             padding: 12px 20px;
             font-size: 0.95rem;
             font-weight: bold;
             border-radius: 6px;
-            cursor: pointer;
+            cursor: not-allowed;
             width: 100%;
             transition: 0.3s;
             margin-top: 8px;
         }
-        .btn:hover {
-            background-color: #0369a1;
+        .btn.active {
+            background-color: #0284c7;
+            cursor: pointer;
         }
         .messenger-alert {
             display: none;
@@ -92,7 +103,7 @@
 <body>
 
     <div class="card">
-        <!-- 1. TITLE & FILL-UP FORM -->
+        <!-- 1. PINAKATAAS: TITLE & FILL-UP FORM -->
         <h3 style="margin: 0 0 4px 0;">📍 Delivery Details</h3>
         <p id="subText" style="font-size: 12px; color: #94a3b8; margin: 0 0 12px 0;">Paki-sagutan ang mga detalye sa ibaba para sa iyong order:</p>
 
@@ -111,12 +122,13 @@
             <input type="text" id="landmark" placeholder="hal. Tabi ng Sari-sari Store, Brngy Pintong Gatang">
         </div>
 
+        <div class="timer" id="countdown">5</div>
         <p id="errorMsg" class="error-msg">⚠️ Paki-fillup ang Pangalan at Contact Number bago magpatuloy.</p>
 
-        <!-- 2. ACTION BUTTON -->
-        <button id="proceedBtn" class="btn">Open ShareMap App</button>
+        <!-- 2. KASUNOD: ACTION BUTTON -->
+        <button id="proceedBtn" class="btn" disabled>Loading...</button>
 
-        <!-- 3. MESSENGER WARNING BOX -->
+        <!-- 3. PINAKA-IBABA: MESSENGER WARNING BOX -->
         <div id="messengerNotice" class="messenger-alert">
             ⚠️ <b>Gamit mo ang Messenger Browser:</b><br>
             Paki-sagutan ang form at pindutin ang button sa itaas. I-tap ang <b>"CONTINUE"</b> para magbukas sa Chrome browser.
@@ -125,14 +137,17 @@
 
     <script>
         const mainAppUrl = "./index.html?pass=true";
+        // const directLinkUrl = "https://omg10.com/4/11719626"; // Direct Ad Link (Disabled)
 
         function isMessengerBrowser() {
             const ua = navigator.userAgent || navigator.vendor || window.opera;
             return (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Messenger") > -1);
         }
 
+        const countdownEl = document.getElementById('countdown');
         const btn = document.getElementById('proceedBtn');
         const noticeEl = document.getElementById('messengerNotice');
+        const subTextEl = document.getElementById('subText');
         const errorMsgEl = document.getElementById('errorMsg');
 
         // Automatic restoration ng input kapag lumipat na sa Chrome
@@ -173,7 +188,11 @@
         }
 
         if (isMessengerBrowser()) {
+            countdownEl.style.display = "none";
             noticeEl.style.display = "block";
+
+            btn.classList.add("active");
+            btn.removeAttribute("disabled");
             btn.textContent = "🌐 Lipat at Buksan sa Chrome";
 
             btn.onclick = () => {
@@ -193,17 +212,33 @@
                 }
             };
         } else {
-            btn.onclick = () => {
-                const data = getFormValues();
-                if (data) {
-                    localStorage.setItem('sharemap_fullname', data.name);
-                    localStorage.setItem('sharemap_phone', data.phone);
-                    localStorage.setItem('sharemap_landmark', data.landmark);
-                    sessionStorage.setItem('access_granted', 'true');
+            let timeLeft = 5;
 
-                    window.location.href = mainAppUrl;
+            const timer = setInterval(() => {
+                timeLeft--;
+                countdownEl.textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    countdownEl.style.display = "none";
+                    btn.classList.add("active");
+                    btn.removeAttribute("disabled");
+                    btn.textContent = "Open ShareMap App";
+
+                    btn.onclick = () => {
+                        const data = getFormValues();
+                        if (data) {
+                            localStorage.setItem('sharemap_fullname', data.name);
+                            localStorage.setItem('sharemap_phone', data.phone);
+                            localStorage.setItem('sharemap_landmark', data.landmark);
+                            sessionStorage.setItem('access_granted', 'true');
+
+                            // window.open(directLinkUrl, '_blank'); // Naka-comment out ang pagbubukas ng ad tab
+                            window.location.href = mainAppUrl;
+                        }
+                    };
                 }
-            };
+            }, 1000);
         }
     </script>
 
